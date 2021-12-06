@@ -28,15 +28,9 @@ for(let i = 0; i < fish.length; ++i) {
 	}
 }
 
-
-//result = spawnsFish(5, MAX_DAYS - 1, -1)
-
 console.log(`Fish over ${MAX_DAYS} days: ${result}`)
 
-
-
-
-function spawnsFish(age, days, depth) {
+function spawnsFish(age, days) {
 	const spawn = 7
 	const firstSpawn = 9
 
@@ -52,7 +46,7 @@ function spawnsFish(age, days, depth) {
 	for(let i = 0; i < children; ++i) {
 		const remainingDays = days - firstSpawn - (spawn * i)
 
-		result += spawnsFish(0, remainingDays, depth)
+		result += spawnsFish(0, remainingDays)
 	}	
 
 	return result
