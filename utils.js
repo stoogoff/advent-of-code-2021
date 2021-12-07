@@ -8,6 +8,8 @@ exports.readFile = (name) => {
 	return data.split('\n').filter(line => !!line)
 }
 
+exports.stringToIntArray = input => input.split(',').map(i => parseInt(i))
+
 // 01
 exports.checkAdjustment = (input) => {
 	let increased = 0
