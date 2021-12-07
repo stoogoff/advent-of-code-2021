@@ -9,15 +9,13 @@ const { stringToIntArray } = require('../utils')
 let crabs = stringToIntArray(fs.readFileSync(path.join(__dirname, 'data'), 'utf8'))
 
 const maxPosition = crabs.reduce((p, c) => Math.max(p, c, 0))
-const fuelCost = []
+let fuelCost = 1000000000000
 
 for(let i = 0; i <= maxPosition; ++i) {
-	fuelCost[i] = getFuelCost(crabs, i)
+	fuelCost = Math.min(getFuelCost(crabs, i), fuelCost)
 }
 
-const result = fuelCost.reduce((p, c) => Math.min(p, c), 1000000000000)
-
-console.log(`Result = ${result}`)
+console.log(`Result = ${fuelCost}`)
 
 function getFuelCost(input, position) {
 	return input.map(c => totals(Math.abs(c - position))).reduce((p, c) => p + c, 0)
