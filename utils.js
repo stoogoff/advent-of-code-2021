@@ -8,7 +8,18 @@ exports.readFile = (name) => {
 	return data.split('\n').filter(line => !!line)
 }
 
+exports.read = name => fs.readFileSync(path.join(__dirname, name), 'utf8')
+
 exports.stringToIntArray = input => input.split(',').map(i => parseInt(i))
+
+exports.adder = (p, c) => p + c
+
+exports.sortBy = prop => (a, b) => {
+	a = a[prop]
+	b = b[prop]
+
+	return a === b ? 0 : (a < b ? -1 : 1)
+}
 
 // 01
 exports.checkAdjustment = (input) => {
@@ -31,3 +42,12 @@ exports.checkAdjustment = (input) => {
 	console.log(`decreased = ${decreased}`)
 }
 
+// 08
+exports.parseSignals = input => input.map(line => {
+		const [signalPatterns, output] = line.split(' | ')
+
+		return {
+			signalPatterns: signalPatterns.split(' '),
+			output: output.split(' '),
+		}
+	})
