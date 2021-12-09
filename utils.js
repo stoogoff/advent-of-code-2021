@@ -13,6 +13,7 @@ exports.read = name => fs.readFileSync(path.join(__dirname, name), 'utf8')
 exports.stringToIntArray = input => input.split(',').map(i => parseInt(i))
 
 exports.adder = (p, c) => p + c
+exports.multiplier = (p, c) => p * c
 
 exports.sortBy = prop => (a, b) => {
 	a = a[prop]
