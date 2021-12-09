@@ -2,12 +2,12 @@
 const { readFile, adder } = require('../utils')
 
 // Test data
-const input = `2199943210
+/*const input = `2199943210
 3987894921
 9856789892
 8767896789
-9899965678`.split('\n').map(row => row.split('').map(cell => parseInt(cell)))
-//const input = readFile('09-smoke-basin/data').map(row => row.split('').map(cell => parseInt(cell)))
+9899965678`.split('\n').map(row => row.split('').map(cell => parseInt(cell)))*/
+const input = readFile('09-smoke-basin/data').map(row => row.split('').map(cell => parseInt(cell)))
 
 
 const result = mapToAdjacent(input)
@@ -35,11 +35,8 @@ function mapToAdjacent(input) {
 
 	return sections
 		.filter(chunk => {
-			//chunk.reduce((p, c) => Math.min(p, c), 100000) === chunk[0]
 			const [head, ...tail] = chunk
 			const min = Math.min(...tail)
-
-			console.log(min)
 
 			return head < min
 
