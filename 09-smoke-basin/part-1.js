@@ -34,8 +34,15 @@ function mapToAdjacent(input) {
 	}
 
 	return sections
-		.filter(chunk => 
-			chunk.reduce((p, c) => Math.min(p, c), 100000) === chunk[0]
-		)
+		.filter(chunk => {
+			//chunk.reduce((p, c) => Math.min(p, c), 100000) === chunk[0]
+			const [head, ...tail] = chunk
+			const min = Math.min(...tail)
+
+			console.log(min)
+
+			return head < min
+
+		})
 		.map(chunk => chunk[0] + 1)
 }
