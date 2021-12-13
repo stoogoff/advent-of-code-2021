@@ -35,21 +35,22 @@ folds.forEach(f => {
 
 visualise(grid)
 
-//console.log(`Result: ${newGrid.length}`)
-
 function visualise(grid) {
-	const MAX_X = getMax(grid, 0)
-	const MAX_Y = getMax(grid, 1)
+	const MAX_X = getValue(grid, 0, 'max')
+	const MAX_Y = getValue(grid, 1, 'max')
+	const MIN_X = getValue(grid, 0, 'min')
+	const MIN_Y = getValue(grid, 1, 'min')
 	const gridMap = {}
+	const OFFSET = 0
 
 	grid.forEach(point => gridMap[key(...point)] = point)
 
 	const buffer = []
 
-	for(let x = 0; x <= MAX_X; ++x) {
+	for(let y = MIN_Y - OFFSET; y <= MAX_Y + OFFSET; ++y) {
 		const lineBuffer = []
 
-		for(let y = 0; y <= MAX_Y; ++y) {
+		for(let x = MIN_X - OFFSET; x <= MAX_X + OFFSET; ++x) {
 			if(gridMap[key(x, y)]) {
 				lineBuffer.push('#')
 			}
@@ -67,7 +68,7 @@ function visualise(grid) {
 function fold(grid, fold) {
 	const changePos = fold[0] === 'y' ? 1 : 0
 	const fixedPos = changePos === 1 ? 0 : 1
-	const max = getMax(grid, changePos)
+	const max = getValue(grid, changePos, 'max')
 	const newGrid = {}
 
 	grid.forEach(point => {
@@ -79,7 +80,7 @@ function fold(grid, fold) {
 		const newPoint = []
 
 		newPoint[fixedPos] = point[fixedPos]
-		newPoint[changePos] = max - point[changePos]
+		newPoint[changePos] = point[changePos] - (point[changePos] - fold[1]) * 2
 
 		newGrid[key(newPoint)] = newPoint
 	})
@@ -105,6 +106,6 @@ function getFolds(input) {
 	})
 }
 
-function getMax(grid, position) {
-	return Math.max(...grid.map(point => point[position]))
+function getValue(grid, position, call) {
+	return Math[call](...grid.map(point => point[position]))
 }
