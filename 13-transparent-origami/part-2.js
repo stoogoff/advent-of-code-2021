@@ -26,21 +26,48 @@ fold along x=5`.split('\n')*/
 
 const input = readFile('13-transparent-origami/data')
 
-const grid = buildGrid(input)
+let grid = buildGrid(input)
 const folds = getFolds(input)
 
-const MAX_X = getMax(grid, 0)
-const MAX_Y = getMax(grid, 1)
+folds.forEach(f => {
+	grid = fold(grid, f)
+})
 
-let newGrid = fold(grid, folds[0])
+visualise(grid)
 
-console.log(`Result: ${newGrid.length}`)
+//console.log(`Result: ${newGrid.length}`)
 
+function visualise(grid) {
+	const MAX_X = getMax(grid, 0)
+	const MAX_Y = getMax(grid, 1)
+	const gridMap = {}
+
+	grid.forEach(point => gridMap[key(...point)] = point)
+
+	const buffer = []
+
+	for(let x = 0; x <= MAX_X; ++x) {
+		const lineBuffer = []
+
+		for(let y = 0; y <= MAX_Y; ++y) {
+			if(gridMap[key(x, y)]) {
+				lineBuffer.push('#')
+			}
+			else {
+				lineBuffer.push('.')
+			}
+		}
+
+		buffer.push(lineBuffer)
+	}
+
+	console.log(buffer.map(line => line.join('')).join('\n'))
+}
 
 function fold(grid, fold) {
 	const changePos = fold[0] === 'y' ? 1 : 0
 	const fixedPos = changePos === 1 ? 0 : 1
-	const max = changePos === 1 ? MAX_Y : MAX_X
+	const max = getMax(grid, changePos)
 	const newGrid = {}
 
 	grid.forEach(point => {
@@ -61,7 +88,7 @@ function fold(grid, fold) {
 }
 
 function key(x, y) {
-	return `${x}${y}`
+	return `${x},${y}`
 }
 
 function buildGrid(input) {
