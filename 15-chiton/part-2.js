@@ -14,7 +14,12 @@ const { readFile, sortBy, adder } = require('../utils')
 2311944581`
 
 input = input.split('\n').map(line => line.split('').map(cell => parseInt(cell)))*/
+
 const input = readFile('15-chiton/data').map(line => line.split('').map(cell => parseInt(cell)))
+
+const WIDTH = input[0].length * 5
+const HEIGHT = input.length * 5
+
 const path = findPath(input)
 
 console.log(`Result: ${path}`)
@@ -22,7 +27,7 @@ console.log(`Result: ${path}`)
 function findPath(grid) {
 	let queue = []
 	const visited = {}
-	const TARGET = { x: grid[0].length - 1, y: grid.length - 1 }
+	const TARGET = { x: WIDTH - 1, y: HEIGHT - 1 }
 
 	queue.push({ x: 0, y: 0, val: 0 })
 
@@ -51,52 +56,31 @@ function key(point) {
 function getNext(grid, x, y) {
 	const next = []
 
-	if(x + 1 < grid[y].length) {
-		next.push({ x: x + 1, y: y, val: grid[y][x + 1] })
+	if(x + 1 < WIDTH) {
+		next.push({ x: x + 1, y: y, val: getGridVal(grid, y, x + 1) })
 	}
-	if(y + 1 < grid.length) {
-		next.push({ x: x, y: y + 1, val: grid[y + 1][x] })
+	if(y + 1 < HEIGHT) {
+		next.push({ x: x, y: y + 1, val: getGridVal(grid, y + 1, x) })
 	}
 	if(x - 1 >= 0) {
-		next.push({ x: x - 1, y: y, val: grid[y][x - 1] })
+		next.push({ x: x - 1, y: y, val: getGridVal(grid, y, x - 1) })
 	}
 	if(y - 1 >= 0) {
-		next.push({ x: x, y: y - 1, val: grid[y - 1][x] })
+		next.push({ x: x, y: y - 1, val: getGridVal(grid, y - 1, x) })
 	}
 
 	return next
 }
 
-function visualise(grid, path) {
-	const buffer = []
-	const pathMap = {}
+function getGridVal(grid, x, y) {
+	const modY = y % input.length
+	const modX = x % input[0].length
+	const divY = Math.floor(y / input.length)
+	const divX = Math.floor(x / input[0].length)
 
-	path.forEach(point => pathMap[`${point.x}${point.y}`] = point)
+	let value = grid[modY][modX] + divY + divX
 
-	const BRIGHT = '\x1b[37m'
-	const DIM = '\x1b[32m'
-	let state = BRIGHT
+	if(value > 9) value = value % 9
 
-	process.stdout.write('\x1b[1m')
-
-	for(let y = 0, ylen = grid.length; y < ylen; ++y) {
-		for(let x = 0, xlen = grid[y].length; x < xlen; ++x) {
-			const KEY = `${x}${y}`
-
-			if(pathMap[KEY]) {
-				state = BRIGHT
-			}
-			else {
-				state = DIM
-			}
-
-			process.stdout.write(state + grid[y][x].toString())
-
-			if(x < xlen - 1) process.stdout.write('.')
-		}
-
-		process.stdout.write('\n')
-	}
-
-	console.log('\x1b[0m')
+	return value
 }
