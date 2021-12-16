@@ -1,4 +1,6 @@
 
+const { adder, multiplier } = require('../utils')
+
 const bitMap = {
 	'0': '0000',
 	'1': '0001',
@@ -19,6 +21,14 @@ const bitMap = {
 }
 
 const handlers = {
+	type_0: input => handlers.operator(input, values => values.reduce(adder, 0)),
+
+	type_1: input => handlers.operator(input, values => values.reduce(multiplier, 1)),
+
+	type_2: input => handlers.operator(input, values => Math.min(...values)),
+
+	type_3: input => handlers.operator(input, values => Math.max(...values)),
+
 	type_4: function(input) {
 		const output = []
 
@@ -35,19 +45,30 @@ const handlers = {
 		return { value: parseInt(output.join(''), 2), bits: input }
 	},
 
-	operator: function(input) {
-		const lengthTypeID = input.substring(0, 1)
+	type_5: input => handlers.operator(input, values => values[0] > values[1] ? 1 : 0),
 
-		return handlers[`operator_${lengthTypeID}`](input.substring(1))
+	type_6: input => handlers.operator(input, values => values[0] < values[1] ? 1 : 0),
+
+	type_7: input => handlers.operator(input, values => values[0] == values[1] ? 1 : 0),
+
+	operator: function(input, callable) {
+		const lengthTypeID = input.substring(0, 1)
+		const output = handlers[`operator_${lengthTypeID}`](input.substring(1))
+
+		if(callable) {
+			output.value = callable(output.values)
+		}
+
+		return output
 	},
 
 	// here value is the total length of the subpackets
 	operator_0: function(input) {
 		let { value, bits } = getSubPackets(input, 15)
 		const subPackets = bits.substring(0, value)
-		const { version, _ } = exports.parsePackets(subPackets)
+		const { version, _, values } = exports.parsePackets(subPackets)
 
-		return { version, bits: bits.substring(value) }
+		return { version, bits: bits.substring(value), values }
 	},
 
 	// here value is the total number of subpackets
@@ -64,6 +85,7 @@ exports.convertHexToBin = input => input.split('').map(char => bitMap[char]).joi
 exports.parsePackets = (input, length) => {
 	let iterations = 0
 	let totalVersion = 0
+	const values = []
 
 	while(input && input.length) {
 		const [version, typeID, tail] = getTypeAndVersion(input)
@@ -79,7 +101,7 @@ exports.parsePackets = (input, length) => {
 
 		const output = handlers[key](input)
 
-		if(output.value) console.log(`Output: ${output.value}`)
+		if('value' in output) values.push(output.value)
 		if(output.version) totalVersion += output.version
 
 		input = output.bits
@@ -88,7 +110,7 @@ exports.parsePackets = (input, length) => {
 		if(length && ++iterations >= length) break
 	}
 
-	return { version: totalVersion, bits: input }
+	return { version: totalVersion, bits: input, values }
 }
 
 function getTypeAndVersion(input) {
