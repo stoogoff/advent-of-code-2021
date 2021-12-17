@@ -157,8 +157,6 @@ probes.forEach((probe, idx) => {
 })
 
 const hits = probes.filter(probe => probe.hitTarget)
-const heighest = Math.max(...hits.map(probe => probe.maxHeight))
+const highest = Math.max(...hits.map(probe => probe.maxHeight))
 
-console.log(`${hits.length} probes hit the target. The heighest reached ${heighest}.\n`)
-
-console.log(hits.filter(probe => probe.maxHeight === heighest))
+console.log(`${hits.length} probes hit the target. The highest reached ${highest}.\n`)
