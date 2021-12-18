@@ -56,7 +56,7 @@ class Tree {
 console.log(`${' '.repeat(depth)}right`, right)
 				if(right instanceof Tree) {
 					console.log(`${' '.repeat(depth)}calling addRight`)
-					right.addRight(value, depth + 1)
+					right.addLeft(value, depth + 1)
 					console.log('--')
 					return
 				}
