@@ -27,10 +27,24 @@ class Tree {
 
 		while(node.parent !== null) {
 			if(node.index - 1 >= 0) {
-				const left = node.parent.children[node.index - 1]
+				let left = node.parent.children[node.index - 1]
 
 				if(left instanceof Tree) {
-					left.addLeft(value)
+					if(left.children[left.children.length - 1] instanceof Tree) {
+						while(left.children.length > 0) {
+							if(left.children[left.children.length - 1] instanceof Tree) {
+								left = left.children[left.children.length - 1]
+							}
+							else {
+								left.children[left.children.length - 1] += value
+								return
+							}
+						}
+					}
+					else {
+						left.children[left.children.length - 1] += value
+					}
+
 					return
 				}
 				else {
@@ -42,33 +56,30 @@ class Tree {
 			node = node.parent
 		}
 	}
-	addRight(value, depth = 0) {
+	addRight(value) {
 		let node = this
 
 		while(node.parent !== null) {
-			console.log(`${' '.repeat(depth)}addRight...`)
-			console.log(`${' '.repeat(depth)}next index=${node.index + 1}`)
-			console.log(`${' '.repeat(depth)}parent.length=${node.parent.children.length}`)
-			console.log(`${' '.repeat(depth)}depth=${node.depth}`)
-
 			if(node.index + 1 < node.parent.children.length) {
 				const right = node.parent.children[node.index + 1]
-console.log(`${' '.repeat(depth)}right`, right)
+
 				if(right instanceof Tree) {
-					console.log(`${' '.repeat(depth)}calling addRight`)
-					right.addLeft(value, depth + 1)
-					console.log('--')
+					if(right.children[0] instanceof Tree) {
+						right.children[0].addLeft(value)
+					}
+					else {
+						right.children[0] += value
+					}
+
 					return
 				}
 				else {
+					// this probably isn't needed
 					node.parent.children[node.index + 1] += value
-					console.log(`${' '.repeat(depth)}assigning value: ${node.parent.children[node.index + 1]}`)
-					console.log('--')
 					return
 				}
 			}
-			console.log(`${' '.repeat(depth)}checking parent`, node.parent !== null)
-			depth++
+
 			node = node.parent
 		}
 	}
@@ -86,20 +97,23 @@ console.log(`${' '.repeat(depth)}right`, right)
 		let redo = false
 
 		do {
-			redo = this._sum()
+			redo = this.explode()
 		} while(redo)
+
+		redo = this.split()
+
+		if(redo) this.sum()
 	}
 
-	_sum() {
+	explode() {
 		let redo = false
 
 		for(let i = 0, ilen = this.children.length; i < ilen; ++i) {
 			const leaf = this.children[i]
-//console.log(leaf, leaf.depth)
+
 			if(leaf instanceof Tree) {
 				// explode
 				if(leaf.depth > 4) {
-					console.log('explode', leaf.children)
 					leaf.addLeft(leaf.children[0])
 					leaf.addRight(leaf.children[1])
 					leaf.parent = null
@@ -110,29 +124,43 @@ console.log(`${' '.repeat(depth)}right`, right)
 					redo = true
 				}
 				else {
-					const response = leaf._sum()
+					const response = leaf.explode()
 
 					if(response) redo = response
 				}
 			}
-			else {
-				// split
-				if(leaf >= 10) {
-					console.log('split')
-					const left = Math.floor(leaf / 2)
-					const right = Math.ceil(leaf / 2)
-					const tree = new Tree()
+		}
 
-					tree.append(left)
-					tree.append(right)
-					tree.parent = this
-					tree.index = i
+		return redo
+	}
 
-					this.children[i] = tree
+	split() {
+		let redo = false
 
-					redo = true
-				}
+		for(let i = 0, ilen = this.children.length; i < ilen; ++i) {
+			const leaf = this.children[i]
+
+			if(leaf instanceof Tree) {
+				const response = leaf.split()
+
+				if(response) redo = response
 			}
+			else if(leaf >= 10) {
+				const left = Math.floor(leaf / 2)
+				const right = Math.ceil(leaf / 2)
+				const tree = new Tree()
+
+				tree.append(left)
+				tree.append(right)
+				tree.parent = this
+				tree.index = i
+
+				this.children[i] = tree
+
+				redo = true
+			}
+
+			if(redo) break
 		}
 
 		return redo
@@ -191,13 +219,13 @@ console.log(`${' '.repeat(depth)}right`, right)
 
 
 let input = [
-	/*{ test: '[[1,2],[[3,4],5]]', magnitude: 143 },
+	{ test: '[[1,2],[[3,4],5]]', magnitude: 143 },
 	{ test: '[[[[0,7],4],[[7,8],[6,0]]],[8,1]]', magnitude: 1384 },
 	{ test: '[[[[1,1],[2,2]],[3,3]],[4,4]]', magnitude: 445 },
 	{ test: '[[[[3,0],[5,3]],[4,4]],[5,5]]', magnitude: 791 },
 	{ test: '[[[[5,0],[7,4]],[5,5]],[6,6]]', magnitude: 1137 },
 	{ test: '[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]', magnitude: 3488 },
-	{ test: '[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]', magnitude: 4140 },*/
+	{ test: '[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]', magnitude: 4140 },
 	{ test: '[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]', output: '[[[[0,7],4],[[7,8],[6,0]]],[8,1]]' },
 	//{ test: '[[[[1,[4,3]]]]]', result: 14 },
 	/*{ test: '[[[[[9,8],1],2],3],4]', output: '[[[[0,9],2],3],4]'},
@@ -209,9 +237,9 @@ let input = [
 ]
 //let input = [10, 5, 3, 11]
 
-input.forEach(test => {
+/*input.forEach(test => {
 	console.log('\n--\n')
-	console.log(test.test)
+	console.log('Input:', test.test)
 
 	const tree = parseInput(test.test)
 
@@ -224,7 +252,7 @@ input.forEach(test => {
 	if(test.output) {
 		logResult(tree.write(), test.output)
 	}
-})
+})*/
 
 function logResult(result, expected) {
 	const correct = result === expected
@@ -237,8 +265,8 @@ function logResult(result, expected) {
 	}
 }
 
-/*
-const test = `[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
+
+/*const test = `[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 [[[5,[2,8]],4],[5,[[9,9],0]]]
 [6,[[[6,2],[5,6]],[[7,6],[4,7]]]]
 [[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]
@@ -247,35 +275,114 @@ const test = `[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 [[[[5,4],[7,7]],8],[[8,3],8]]
 [[9,3],[[9,9],[6,[4,9]]]]
 [[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]
-[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]`.split('\n')
+[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]`.split('\n')*/
 
-while(test.length > 0) {
-	const line = test.shift()
-	const tree = parseInput(line)
+/*const test = `[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
+[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]
+[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]
+[7,[5,[[3,8],[1,4]]]]
+[[2,[2,2]],[8,[8,1]]]
+[2,9]
+[1,[[[9,3],9],[[9,0],[0,7]]]]
+[[[5,[7,4]],7],1]
+[[[[4,2],2],6],[8,7]]`.split('\n')*/
 
-	tree.sum()
+//let trees = `[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+//[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]`
 
-	if(test.length > 0) {
-		test[0] = '[' + tree.write() + ',' + test[0] + ']'
-	}
-	else {
-		console.log(tree.write())
-		console.log(tree.magnitude)
-	}
-}
+let trees = [
+{
+lines: `[1,1]
+[2,2]
+[3,3]
+[4,4]
+[5,5]
+[6,6]`,
+expected: '[[[[5,0],[7,4]],[5,5]],[6,6]]'
+},
+/*{
+lines: `[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]`,
+expected: '[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]' },
+{
+lines: `[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]
+[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]`,
+expected: '[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]' },
+{
+lines: `[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]
+[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]`,
+expected: '[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]' },
+{
+lines: `[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]
+[7,[5,[[3,8],[1,4]]]]`,
+expected: '[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]' },
+{
+lines: `[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]
+[[2,[2,2]],[8,[8,1]]]`,
+expected: '[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]' },
+{
+lines: `[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]
+[2,9]`,
+expected: '[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]' },
+{
+lines: `[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]
+[1,[[[9,3],9],[[9,0],[0,7]]]]`,
+expected: '[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]' },
+{
+lines: `[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]
+[[[5,[7,4]],7],1]`,
+expected: '[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]' },
+{
+lines: `[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]
+[[[[4,2],2],6],[8,7]]`,
+expected: '[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]' },
 */
+]
+
+trees.forEach(obj => {
+	const trees = obj.lines.split('\n').map(line => parseInput(line))
+
+	console.log('\n--\n')
+
+	//const root = new Tree()
+	let root = new Tree()
 
 
-//console.log(tree.write())
-//console.log(tree.magnitude)
+	for(let i = 0, ilen = trees.length; i < ilen; ++i) {
+		root = addTrees(root, trees[i])
+	}
+
+	root.sum()
+
+	logResult(root.write(), obj.expected)
+
+})
 
 
+let t2 = new Tree()
 
+t2.append(12)
+t2.append(5)
+t2.append(4)
 
+let t3 = new Tree()
+t3.append(3)
 
+let t1 = addTrees(t2, t3)
 
+t1.sum()
+console.log(t1.write())
 
+function addTrees(left, right) {
+	const t1 = new Tree(), t2 = new Tree()
 
+	t1.append(t2)
+	t2.append(left)
+	t2.append(right)
+
+	return t1
+}
 
 function parseInput(input) {
 	let tree = new Tree()
