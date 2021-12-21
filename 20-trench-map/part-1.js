@@ -48,7 +48,7 @@ function parseImage(image, algo, step) {
 			newImage[y + OFFSET][x + OFFSET] = (algo[0] === '#' & step % 2) ? '.' : algo[position]
 		}
 	}
-return newImage
+//return newImage
 	const trimmedImage = []
 
 	for(let y = 1, ylen = newImage.length - 1; y < ylen; ++y) {
